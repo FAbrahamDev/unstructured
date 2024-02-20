@@ -1,5 +1,6 @@
 import os
 import tempfile
+import random
 from typing import TYPE_CHECKING, BinaryIO, Dict, List, Optional, Union, cast
 
 import pdf2image
@@ -76,11 +77,16 @@ def process_data_with_ocr(
     Returns:
         DocumentLayout: The merged layout information obtained after OCR processing.
     """
-    with tempfile.NamedTemporaryFile() as tmp_file:
-        tmp_file.write(data.read() if hasattr(data, "read") else data)
-        tmp_file.flush()
+    with tempfile.TemporaryDirectory() as td:
+        f_name = os.path.join(
+            td, "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789_", k=8))
+        )
+        with open(f_name, "wb") as tmp_file:
+            tmp_file.write(data.read() if hasattr(data, "read") else data)
+            tmp_file.flush()
+
         merged_layouts = process_file_with_ocr(
-            filename=tmp_file.name,
+            filename=f_name,
             out_layout=out_layout,
             extracted_layout=extracted_layout,
             is_image=is_image,
